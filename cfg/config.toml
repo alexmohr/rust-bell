@@ -1,0 +1,6 @@
+[mqtt]
+topic = "bell/ring"
+host = "mqtt"
+# port = 1833
+# username = ""
+# password = ""
