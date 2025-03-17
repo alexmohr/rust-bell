@@ -20,33 +20,28 @@
  * SOFTWARE.
  */
 
+mod audio;
 mod cli;
 mod config;
 mod mqtt;
 
-struct SoundPlayer;
-impl mqtt::Callback for SoundPlayer {
-    fn on_message(&self, message: &str) {
-        println!("Received message: {}", message);
-    }
-}
-
-//#[tokio::main]
 fn main() {
     let args = cli::parse_arguments();
     let config = match config::read_config(args.config) {
-        Ok(config) => {
-            let sound_player: Box<SoundPlayer> = Box::new(SoundPlayer);
-            let client = mqtt::MqttClient::new(
-                config.mqtt,
-                 sound_player,
-            );
-            println!("Starting mqtt server...");
-            client.connect_and_poll();
-      }
+        Ok(config) => config,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Failed to parse config: {}", e);
             std::process::exit(1);
         }
     };
+
+    env_logger::Builder::from_env(
+        env_logger::Env::default()
+            .default_filter_or(config.general.log_level.unwrap_or("error".to_string())),
+    )
+    .init();
+
+    let sound_player = Box::new(audio::SoundPlayer::new(config.audio));
+    let client = mqtt::MqttClient::new(config.mqtt, sound_player);
+    client.connect_and_poll();
 }

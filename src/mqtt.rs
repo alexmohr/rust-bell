@@ -20,21 +20,16 @@
  * SOFTWARE.
  */
 
-use rumqttc::{Client, Event, Incoming, MqttOptions, QoS};
-use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 use crate::config;
-
+use rumqttc::{Client, Event, Incoming, MqttOptions, QoS};
 
 pub(crate) trait Callback {
     fn on_message(&self, message: &str);
 }
 
-
 pub(crate) struct MqttClient {
     config: config::Mqtt,
-    //client: Option<AsyncClient>,
-    callback: Box<dyn Callback>
+    callback: Box<dyn Callback>,
 }
 
 impl MqttClient {
@@ -42,23 +37,43 @@ impl MqttClient {
     pub(crate) fn new(mqtt_config: config::Mqtt, callback: Box<dyn Callback>) -> Self {
         MqttClient {
             config: mqtt_config,
-            //client: None,
-            callback
+            callback,
         }
     }
 
-    // Connects to the MQTT broker and subscribes to the topic
-    pub(crate) fn connect_and_poll(& self) {
-        let mut mqtt_options = MqttOptions::new("rust_bell", &self.config.host, self.config.port.unwrap_or(1883));
+    pub(crate) fn connect_and_poll(&self) {
+        let mut mqtt_options = MqttOptions::new(
+            "rust_bell",
+            &self.config.host,
+            self.config.port.unwrap_or(1883),
+        );
+
         if self.config.username.is_some() && self.config.password.is_some() {
-            mqtt_options.set_credentials(self.config.username.as_ref().unwrap(), self.config.password.as_ref().unwrap());
+            mqtt_options.set_credentials(
+                self.config.username.as_ref().unwrap(),
+                self.config.password.as_ref().unwrap(),
+            );
         }
 
-        let (mut client, mut connection) = Client::new(mqtt_options, 10);
+        let (client, mut connection) = Client::new(mqtt_options, 10);
 
-        client.subscribe(&self.config.topic, QoS::AtMostOnce).unwrap();
-        // Iterate to poll the eventloop for connection progress
+        client
+            .subscribe(&self.config.topic, QoS::AtMostOnce)
+            .unwrap();
+        let status = connection.recv();
+        match status {
+            Ok(Ok(_)) => {}
+            Ok(Err(connection_error)) => {
+                log::error!("MQTT connection error: {}", connection_error);
+                return;
+            }
+            Err(recv_error) => {
+                log::error!("Recv Error: {:?}", recv_error);
+            }
+        }
+
         for notification in connection.iter().flatten() {
+            log::info!("Notification = {:?}", notification);
             if let Event::Incoming(Incoming::Publish(packet)) = notification {
                 let payload = String::from_utf8(packet.payload.as_ref().to_vec());
                 match payload {

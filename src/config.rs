@@ -23,7 +23,6 @@
 use serde::Deserialize;
 use std::fs;
 
-
 #[derive(Deserialize)]
 pub struct Mqtt {
     pub topic: String,
@@ -34,8 +33,21 @@ pub struct Mqtt {
 }
 
 #[derive(Deserialize)]
+pub struct Audio {
+    pub sound_file: String,
+    pub play_count: i32,
+}
+
+#[derive(Deserialize)]
+pub struct General {
+    pub log_level: Option<String>,
+}
+
+#[derive(Deserialize)]
 pub struct Config {
-    pub mqtt: Mqtt
+    pub mqtt: Mqtt,
+    pub audio: Audio,
+    pub general: General,
 }
 
 pub fn read_config(path: String) -> Result<Config, Box<dyn std::error::Error>> {

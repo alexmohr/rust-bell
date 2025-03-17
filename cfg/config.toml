@@ -4,3 +4,10 @@ host = "mqtt"
 # port = 1833
 # username = ""
 # password = ""
+
+[audio]
+sound_file = ""
+play_count = 3
+
+[general]
+log_level = "error"
