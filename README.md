@@ -45,3 +45,7 @@ log_level = "error"
 
 ## Additional dependencies
 * ALSA, on systems using pipewire this means pipewire-alsa
+  On debian based systems these can be installed via 
+```aiignore
+sudo apt-get install -y alsa-utils alsa-base libasound2 libasound2-dev
+```
