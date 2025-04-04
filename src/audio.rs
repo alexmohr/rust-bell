@@ -25,13 +25,13 @@ use rodio::{Decoder, OutputStream, Sink};
 use std::fs::File;
 use std::io::BufReader;
 
-pub(crate) struct SoundPlayer {
+pub struct SoundPlayer {
     config: config::Audio,
 }
 
 impl SoundPlayer {
-    pub(crate) fn new(audio_config: config::Audio) -> Self {
-        SoundPlayer {
+    pub const fn new(audio_config: config::Audio) -> Self {
+        Self {
             config: audio_config,
         }
     }

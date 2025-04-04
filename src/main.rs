@@ -20,6 +20,11 @@
  * SOFTWARE.
  */
 
+#![warn(clippy::pedantic)]
+#![warn(clippy::all)]
+#![warn(clippy::nursery)]
+#![allow(clippy::single_call_fn)]
+
 mod audio;
 mod cli;
 mod config;
@@ -30,14 +35,14 @@ fn main() {
     let config = match config::read_config(args.config) {
         Ok(config) => config,
         Err(e) => {
-            eprintln!("Failed to parse config: {}", e);
+            eprintln!("Failed to parse config: {e}");
             std::process::exit(1);
         }
     };
 
     env_logger::Builder::from_env(
         env_logger::Env::default()
-            .default_filter_or(config.general.log_level.unwrap_or("error".to_string())),
+            .default_filter_or(config.general.log_level.unwrap_or_else(||"error".to_string())),
     )
     .init();
 

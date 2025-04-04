@@ -23,25 +23,25 @@
 use crate::config;
 use rumqttc::{Client, Event, Incoming, MqttOptions, QoS};
 
-pub(crate) trait Callback {
+pub trait Callback {
     fn on_message(&self, message: &str);
 }
 
-pub(crate) struct MqttClient {
+pub struct MqttClient {
     config: config::Mqtt,
     callback: Box<dyn Callback>,
 }
 
 impl MqttClient {
     // Constructor that initializes the client with host, port, and topic
-    pub(crate) fn new(mqtt_config: config::Mqtt, callback: Box<dyn Callback>) -> Self {
-        MqttClient {
+    pub fn new(mqtt_config: config::Mqtt, callback: Box<dyn Callback>) -> Self {
+        Self {
             config: mqtt_config,
             callback,
         }
     }
 
-    pub(crate) fn connect_and_poll(&self) {
+    pub fn connect_and_poll(&self) {
         let mut mqtt_options = MqttOptions::new(
             "rust_bell",
             &self.config.host,
@@ -81,7 +81,7 @@ impl MqttClient {
                         self.callback.on_message(&payload);
                     }
                     Err(e) => {
-                        println!("Error parsing payload: {:?}", e);
+                        println!("Error parsing payload: {e:?}");
                     }
                 }
             }
