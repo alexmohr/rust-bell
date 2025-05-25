@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 use crate::config;
 use rumqttc::{Client, Event, Incoming, MqttOptions, QoS};
+use std::time::Duration;
 
 pub(crate) trait Callback {
     fn on_message(&self, message: &str);
@@ -47,6 +47,7 @@ impl MqttClient {
             &self.config.host,
             self.config.port.unwrap_or(1883),
         );
+        mqtt_options.set_keep_alive(Duration::from_secs(30));
 
         if self.config.username.is_some() && self.config.password.is_some() {
             mqtt_options.set_credentials(
